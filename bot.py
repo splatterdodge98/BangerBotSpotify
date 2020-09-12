@@ -2,7 +2,6 @@ import discord
 import os
 import requests
 import config
-import pandas
 import datetime
 import calendar
 import json
@@ -165,7 +164,7 @@ async def on_message(message):
                         tempCall = requests.get('https://api.spotify.com/v1/tracks/%s' % songID[14:],
                                                 headers={'Authorization': 'Bearer ' + access_token})
                         link = tempCall.json()['external_urls']['spotify']
-                        await message.channel.send('here A new song has been added to vote on! Posted is a link to the song. Give it a listen and react to this message with :upvote: if you approve and :downvote: if you disapprove ' + link)
+                        await message.channel.send('@here A new song has been added to vote on! Posted is a link to the song. Give it a listen and react to this message with :upvote: if you approve and :downvote: if you disapprove ' + link)
                         output = json.dumps(db)
                         f = open('database.json', 'w')
                         f.write(output)
@@ -186,7 +185,7 @@ async def on_message(message):
         tempCall = requests.get('https://api.spotify.com/v1/tracks/%s' % songID[14:],
                                 headers={'Authorization': 'Bearer ' + access_token})
         link = tempCall.json()['external_urls']['spotify']
-        await message.channel.send('here A new song has been added to vote on! Posted is a link to the song. Give it a listen and react to this message with :upvote: if you approve and :downvote: if you disapprove ' + link)
+        await message.channel.send('@here A new song has been added to vote on! Posted is a link to the song. Give it a listen and react to this message with :upvote: if you approve and :downvote: if you disapprove ' + link)
         output = json.dumps(db)
         f = open('database.json', 'w')
         f.write(output)
