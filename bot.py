@@ -196,7 +196,7 @@ async def on_message(message):
 @client.event
 async def on_raw_reaction_add(payload):
     if payload.channel_id == 466453653084176384:
-        if payload.emoji.id == os.environ['UPVOTE']:
+        if payload.emoji.id == 464532537243467786:
             getGuild = client.get_guild(payload.guild_id)
             getChannel = getGuild.get_channel(payload.channel_id)
             getMessage = await getChannel.fetch_message(payload.message_id)
@@ -244,7 +244,7 @@ async def on_raw_reaction_add(payload):
                 f = open('database.json', 'w')
                 f.write(output)
                 f.close()
-        if payload.emoji.id == os.environ['DOWNVOTE']:
+        if payload.emoji.id == 464532598643752970:
             getGuild = client.get_guild(payload.guild_id)
             getChannel = getGuild.get_channel(payload.channel_id)
             getMessage = await getChannel.fetch_message(payload.message_id)
@@ -288,7 +288,7 @@ async def on_raw_reaction_add(payload):
 @client.event
 async def on_raw_reaction_remove(payload):
     if payload.channel_id == 466453653084176384:
-        if payload.emoji.id == os.environ['UPVOTE']:
+        if payload.emoji.id == 464532537243467786:
             getGuild = client.get_guild(payload.guild_id)
             getChannel = getGuild.get_channel(payload.channel_id)
             getMessage = await getChannel.fetch_message(payload.message_id)
@@ -311,7 +311,7 @@ async def on_raw_reaction_remove(payload):
                 f = open('database.json', 'w')
                 f.write(output)
                 f.close()
-        if payload.emoji.id == os.environ['DOWNVOTE']:
+        if payload.emoji.id == 464532598643752970:
             getGuild = client.get_guild(payload.guild_id)
             getChannel = getGuild.get_channel(payload.channel_id)
             getMessage = await getChannel.fetch_message(payload.message_id)
