@@ -195,7 +195,7 @@ async def on_message(message):
 
 @client.event
 async def on_raw_reaction_add(payload):
-    if payload.channel_id == 319938734135050240:
+    if payload.channel_id == 466453653084176384:
         if payload.emoji.id == os.environ['UPVOTE']:
             getGuild = client.get_guild(payload.guild_id)
             getChannel = getGuild.get_channel(payload.channel_id)
@@ -287,7 +287,7 @@ async def on_raw_reaction_add(payload):
 
 @client.event
 async def on_raw_reaction_remove(payload):
-    if payload.channel_id == 319938734135050240:
+    if payload.channel_id == 466453653084176384:
         if payload.emoji.id == os.environ['UPVOTE']:
             getGuild = client.get_guild(payload.guild_id)
             getChannel = getGuild.get_channel(payload.channel_id)
