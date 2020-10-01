@@ -72,23 +72,23 @@ async def on_message(message):
             for i in data['items']:
                 if i['track']['name'] == songName and i['track']['duration_ms'] == songLength:
                     moveOn = True
-                    if i['added_by']['id'] == 1246216463 and message.author == 'skwid23': #skwid
+                    if int(i['added_by']['id']) == 1246216463 and message.author == 'skwid23': #skwid
                         await message.channel.send('Connor just tried to banger his own song. Shame him')
                         await message.delete()
                         return
-                    elif i['added_by']['id'] == 1221299653 and message.author == 'Tater_Hater': #Tater
+                    elif int(i['added_by']['id']) == 1221299653 and message.author == 'Tater_Hater': #Tater
                         await message.channel.send('Nick just tried to banger his own song. Shame him')
                         await message.delete()
                         return
-                    elif i['added_by']['id'] == 1260641918 and message.author == 'huntinator7': #Hunt
+                    elif int(i['added_by']['id']) == 1260641918 and message.author == 'huntinator7': #Hunt
                         await message.channel.send('Hunter just tried to banger his own song. Shame him')
                         await message.delete()
                         return
-                    elif i['added_by']['id'] == 1242077712 and message.author == 'DerKO': #DrKO
+                    elif int(i['added_by']['id']) == 1242077712 and message.author == 'DerKO': #DrKO
                         await message.channel.send('Lane just tried to banger his own song. Shame him')
                         await message.delete()
                         return
-                    elif i['added_by']['id'] == 1256538054 and message.author == 'ZTagger1911': #Tag
+                    elif int(i['added_by']['id']) == 1256538054 and message.author == 'ZTagger1911': #Tag
                         await message.channel.send('Kyle just tried to banger his own song. Shame him')
                         await message.delete()
                         return
@@ -102,23 +102,23 @@ async def on_message(message):
                 for i in data['items']:
                     if i['track']['name'] == songName and i['track']['duration_ms'] == songLength:
                         moveOn = True
-                        if i['added_by']['id'] == 1246216463 and message.author.name == 'skwid23':  # skwid
+                        if int(i['added_by']['id']) == 1246216463 and message.author.name == 'skwid23':  # skwid
                             await message.channel.send('Connor just tried to banger his own song. Shame him')
                             await message.delete()
                             return
-                        elif i['added_by']['id'] == 1221299653 and message.author.name == 'Tater_Hater':  # Tater
+                        elif int(i['added_by']['id']) == 1221299653 and message.author.name == 'Tater_Hater':  # Tater
                             await message.channel.send('Nick just tried to banger his own song. Shame him')
                             await message.delete()
                             return
-                        elif i['added_by']['id'] == 1260641918 and message.author.name == 'huntinator7':  # hunt
+                        elif int(i['added_by']['id']) == 1260641918 and message.author.name == 'huntinator7':  # hunt
                             await message.channel.send('Hunter just tried to banger his own song. Shame him')
                             await message.delete()
                             return
-                        elif i['added_by']['id'] == 1242077712 and message.author.name == 'DerKO':  # DrKO
+                        elif int(i['added_by']['id']) == 1242077712 and message.author.name == 'DerKO':  # DrKO
                             await message.channel.send('Lane just tried to banger his own song. Shame him')
                             await message.delete()
                             return
-                        elif i['added_by']['id'] == 1256538054 and message.author.name == 'ZTagger1911':  # Tag
+                        elif int(i['added_by']['id']) == 1256538054 and message.author.name == 'ZTagger1911':  # Tag
                             await message.channel.send('Kyle just tried to banger his own song. Shame him')
                             await message.delete()
                             return
@@ -164,7 +164,8 @@ async def on_message(message):
                         tempCall = requests.get('https://api.spotify.com/v1/tracks/%s' % songID[14:],
                                                 headers={'Authorization': 'Bearer ' + access_token})
                         link = tempCall.json()['external_urls']['spotify']
-                        await message.channel.send('@here A new song has been added to vote on! Posted is a link to the song. Give it a listen and react to this message with :upvote: if you approve and :downvote: if you disapprove ' + link)
+                        theFunChannel = message.guild.get_channel(758345403996307456)
+                        await theFunChannel.send('@here A new song has been added to vote on! Posted is a link to the song. Give it a listen and react to this message with :upvote: if you approve and :downvote: if you disapprove ' + link)
                         output = json.dumps(db)
                         f = open('database.json', 'w')
                         f.write(output)
@@ -185,7 +186,8 @@ async def on_message(message):
         tempCall = requests.get('https://api.spotify.com/v1/tracks/%s' % songID[14:],
                                 headers={'Authorization': 'Bearer ' + access_token})
         link = tempCall.json()['external_urls']['spotify']
-        await message.channel.send('@here A new song has been added to vote on! Posted is a link to the song. Give it a listen and react to this message with :upvote: if you approve and :downvote: if you disapprove ' + link)
+        theFunChannel = message.guild.get_channel(758345403996307456)
+        await theFunChannel.send('@here A new song has been added to vote on! Posted is a link to the song. Give it a listen and react to this message with :upvote: if you approve and :downvote: if you disapprove ' + link)
         output = json.dumps(db)
         f = open('database.json', 'w')
         f.write(output)
@@ -195,7 +197,7 @@ async def on_message(message):
 
 @client.event
 async def on_raw_reaction_add(payload):
-    if payload.channel_id == 466453653084176384:
+    if payload.channel_id == 758345403996307456:
         if payload.emoji.id == 464532537243467786:
             getGuild = client.get_guild(payload.guild_id)
             getChannel = getGuild.get_channel(payload.channel_id)
@@ -287,7 +289,7 @@ async def on_raw_reaction_add(payload):
 
 @client.event
 async def on_raw_reaction_remove(payload):
-    if payload.channel_id == 466453653084176384:
+    if payload.channel_id == 758345403996307456:
         if payload.emoji.id == 464532537243467786:
             getGuild = client.get_guild(payload.guild_id)
             getChannel = getGuild.get_channel(payload.channel_id)
