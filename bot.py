@@ -146,15 +146,15 @@ async def on_message(message):
             return
         for i in db:
             if i['songID'] == songID:
-                    if i['voteAgain'] > datetime.datetime.now():
+                    if datetime.datetime.strptime(i['voteAgain'], '%m/%d/%y %H:%M:%S') > datetime.datetime.now():
                         await message.channel.send('I am sorry, but this song has already been nominated recently and needs more time to be nominated again. Thanks for trying!')
                         return
                     elif i['voteAgain'] < datetime.datetime.now():
                         i['voteAgain'] = datetime.datetime.now() + datetime.timedelta(days=calendar.monthrange(datetime.datetime.now().year, datetime.datetime.now().month)[1])
                         i['upvotes'] = 0
-                        i['downvotes'] = 0
-                        i['hasUpvoted'] = ""
-                        i['hasDownvoted'] = ""
+                        i['downvotes'] = -1
+                        i['hasUpvoted'] = [message.author.id]
+                        i['hasDownvoted'] = []
                         new_access_token = requests.post('https://accounts.spotify.com/api/token',
                                                          data={'grant_type': 'refresh_token',
                                                                'refresh_token': os.environ['SPOTIFY_REFRESH_ID'],
@@ -176,7 +176,7 @@ async def on_message(message):
                         await message.channel.send('I am sorry, but this song has already been added to the playlist. Thanks for trying!')
                         await message.delete()
                         return
-        db.append({'songID': songID, 'upvotes':0, 'downvotes':0, 'inPlaylist': False, 'hasUpvoted':[], 'hasDownvoted':[]})
+        db.append({'songID': songID, 'upvotes':1, 'downvotes':-1, 'inPlaylist': False, 'hasUpvoted':[message.author.id], 'hasDownvoted':[], 'voteAgain':datetime.datetime.strftime(datetime.datetime.now(), '%m/%d/%y %H:%M:%S') })
         new_access_token = requests.post('https://accounts.spotify.com/api/token',
                                          data={'grant_type': 'refresh_token',
                                                'refresh_token': os.environ['SPOTIFY_REFRESH_ID'],
@@ -187,13 +187,19 @@ async def on_message(message):
                                 headers={'Authorization': 'Bearer ' + access_token})
         link = tempCall.json()['external_urls']['spotify']
         theFunChannel = message.guild.get_channel(758345403996307456)
-        await theFunChannel.send('@here A new song has been added to vote on! Posted is a link to the song. Give it a listen and react to this message with :upvote: if you approve and :downvote: if you disapprove ' + link)
+        voteMessage = await theFunChannel.send('@here A new song has been added to vote on! Posted is a link to the song. Give it a listen and react to this message with :upvote: if you approve and :downvote: if you disapprove ' + link)
+        upvote = await message.guild.fetch_emoji(464532537243467786)
+        downvote = await message.guild.fetch_emoji(464532598643752970)
+        await voteMessage.add_reaction(upvote)
+        await voteMessage.add_reaction(downvote)
         output = json.dumps(db)
         f = open('database.json', 'w')
         f.write(output)
         f.close()
         await message.delete()
         return
+
+
 
 @client.event
 async def on_raw_reaction_add(payload):
@@ -221,7 +227,8 @@ async def on_raw_reaction_add(payload):
                             await i.remove(user)
                     continue
                 i['upvotes'] = i['upvotes'] + 1
-                i['hasUpvoted'].append(payload.user_id)
+                if payload.user_id != 465011884635193345:
+                    i['hasUpvoted'].append(payload.user_id)
                 if (i['upvotes'] > 3) == True:
                     i['inPlaylist'] = True
                     new_access_token = requests.post('https://accounts.spotify.com/api/token',
@@ -269,7 +276,8 @@ async def on_raw_reaction_add(payload):
                             await i.remove(user)
                     continue
                 i['downvotes'] = i['downvotes'] + 1
-                i['hasDownvoted'].append(payload.user_id)
+                if payload.user_id != 465011884635193345:
+                    i['hasDownvoted'].append(payload.user_id)
                 if (i['downvotes'] > 2) == True:
                     new_access_token = requests.post('https://accounts.spotify.com/api/token',
                                                      data={'grant_type': 'refresh_token',
