@@ -72,23 +72,23 @@ async def on_message(message):
             for i in data['items']:
                 if i['track']['name'] == songName and i['track']['duration_ms'] == songLength:
                     moveOn = True
-                    if int(i['added_by']['id']) == 1246216463 and message.author == 'skwid23': #skwid
+                    if i['added_by']['id'] == '1246216463' and message.author == 'skwid23': #skwid
                         await message.channel.send('Connor just tried to banger his own song. Shame him')
                         await message.delete()
                         return
-                    elif int(i['added_by']['id']) == 1221299653 and message.author == 'Tater_Hater': #Tater
+                    elif i['added_by']['id'] == '1221299653' and message.author == 'Tater_Hater': #Tater
                         await message.channel.send('Nick just tried to banger his own song. Shame him')
                         await message.delete()
                         return
-                    elif int(i['added_by']['id']) == 1260641918 and message.author == 'huntinator7': #Hunt
+                    elif i['added_by']['id'] == '1260641918' and message.author == 'huntinator7': #Hunt
                         await message.channel.send('Hunter just tried to banger his own song. Shame him')
                         await message.delete()
                         return
-                    elif int(i['added_by']['id']) == 1242077712 and message.author == 'DerKO': #DrKO
+                    elif i['added_by']['id'] == '1242077712' and message.author == 'DerKO': #DrKO
                         await message.channel.send('Lane just tried to banger his own song. Shame him')
                         await message.delete()
                         return
-                    elif int(i['added_by']['id']) == 1256538054 and message.author == 'ZTagger1911': #Tag
+                    elif i['added_by']['id'] == '1256538054' and message.author == 'ZTagger1911': #Tag
                         await message.channel.send('Kyle just tried to banger his own song. Shame him')
                         await message.delete()
                         return
@@ -102,23 +102,23 @@ async def on_message(message):
                 for i in data['items']:
                     if i['track']['name'] == songName and i['track']['duration_ms'] == songLength:
                         moveOn = True
-                        if int(i['added_by']['id']) == 1246216463 and message.author.name == 'skwid23':  # skwid
+                        if i['added_by']['id'] == '1246216463' and message.author.name == 'skwid23':  # skwid
                             await message.channel.send('Connor just tried to banger his own song. Shame him')
                             await message.delete()
                             return
-                        elif int(i['added_by']['id']) == 1221299653 and message.author.name == 'Tater_Hater':  # Tater
+                        elif i['added_by']['id'] == '1221299653' and message.author.name == 'Tater_Hater':  # Tater
                             await message.channel.send('Nick just tried to banger his own song. Shame him')
                             await message.delete()
                             return
-                        elif int(i['added_by']['id']) == 1260641918 and message.author.name == 'huntinator7':  # hunt
+                        elif i['added_by']['id'] == '1260641918' and message.author.name == 'huntinator7':  # hunt
                             await message.channel.send('Hunter just tried to banger his own song. Shame him')
                             await message.delete()
                             return
-                        elif int(i['added_by']['id']) == 1242077712 and message.author.name == 'DerKO':  # DrKO
+                        elif i['added_by']['id'] == '1242077712' and message.author.name == 'DerKO':  # DrKO
                             await message.channel.send('Lane just tried to banger his own song. Shame him')
                             await message.delete()
                             return
-                        elif int(i['added_by']['id']) == 1256538054 and message.author.name == 'ZTagger1911':  # Tag
+                        elif i['added_by']['id'] == '1256538054' and message.author.name == 'ZTagger1911':  # Tag
                             await message.channel.send('Kyle just tried to banger his own song. Shame him')
                             await message.delete()
                             return
