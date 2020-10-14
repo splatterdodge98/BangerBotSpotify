@@ -5,6 +5,7 @@ import config
 import datetime
 import calendar
 import json
+import re
 
 client = discord.Client()
 
@@ -41,13 +42,24 @@ async def on_message(message):
         try:
             songID = message.content.split()[1]
         except:
-            await message.channel.send('My dude, you forgot to paste in the spotify URI. Nimrod')
+            await message.channel.send('My dude, you forgot to paste in the spotify URI or URL. Nimrod')
             await message.delete()
             return
         if len(songID) != 36:
-            await message.channel.send('Thats a malformed URI, my dude. check to make sure you got the right thing and try again')
-            await message.delete()
-            return
+            try:
+                newInput = re.search('\w{22}', songID)
+                newSongID = 'spotify:track:' + newInput.group()
+                if len(newSongID) != 36:
+                    await message.channel.send(
+                        'Thats a malformed URI or URL, my dude. check to make sure you got the right thing and try again')
+                    await message.delete()
+                    return
+                songID = newSongID
+            except Exception as e:
+                await message.channel.send('Something went wrong with the regex @Noah')
+                print(e)
+                await message.delete()
+                return
         new_access_token = requests.post('https://accounts.spotify.com/api/token',
                                          data={'grant_type': 'refresh_token',
                                                'refresh_token': os.environ['SPOTIFY_REFRESH_ID'],
