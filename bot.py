@@ -18,9 +18,11 @@ DISCORD_EMOJI_DOWNVOTE = int(os.environ['DISCORD_EMOJI_DOWNVOTE'])
 DISCORD_BOT_USER_ID = int(os.environ['DISCORD_BOT_USER_ID'])
 UPVOTES_NEEDED = 4
 DOWNVOTES_NEEDED = 2
+USE_QUEUE = True
 SPOTIFY_PLAYLIST = os.environ['SPOTIFY_PLAYLIST']
 SPOTIFY_PLAYLIST_NAME = os.environ['SPOTIFY_PLAYLIST_NAME']
 SPOTIFY_VOTE_PLAYLIST = os.environ['SPOTIFY_VOTE_PLAYLIST']
+SPOTIFY_QUEUE_PLAYLIST = os.environ['SPOTIFY_QUEUE_PLAYLIST']
 VERBOSE = False
 TRACK_REGEX = re.compile(r"https://open\.spotify\.com/track/(\w+)")
 
@@ -28,11 +30,11 @@ print(sys.argv[1:])
 
 try:
     opts, args = getopt.getopt(
-        sys.argv[1:], "", ['testing', 'verbose', 'upvotes=', 'downvotes='])
+        sys.argv[1:], "", ['testing', 'verbose', 'noqueue', 'upvotes=', 'downvotes='])
     print(opts, args)
 except getopt.GetoptError:
     print(
-        'Use --testing for testing mode, --verbose for verbose output, --upvotes [num] to set upvotes, --downvotes [num] to set downvotes')
+        'Use --testing for testing mode, --verbose for verbose output, --noqueue to use without queue playlist, --upvotes [num] to set upvotes, --downvotes [num] to set downvotes')
     sys.exit(2)
 for opt, arg in opts:
     if opt == '--testing':
@@ -41,11 +43,15 @@ for opt, arg in opts:
         DISCORD_VOTE_CHANNEL = int(os.environ['DISCORD_TEST_VOTE_CHANNEL'])
         SPOTIFY_PLAYLIST = os.environ['SPOTIFY_TEST_PLAYLIST']
         SPOTIFY_VOTE_PLAYLIST = os.environ['SPOTIFY_TEST_VOTE_PLAYLIST']
+        SPOTIFY_QUEUE_PLAYLIST = os.environ['SPOTIFY_TEST_QUEUE_PLAYLIST']
         print(DISCORD_LISTEN_CHANNEL, DISCORD_VOTE_CHANNEL,
-              SPOTIFY_PLAYLIST, SPOTIFY_VOTE_PLAYLIST)
+              SPOTIFY_PLAYLIST, SPOTIFY_VOTE_PLAYLIST, SPOTIFY_QUEUE_PLAYLIST)
     elif opt == '--verbose':
         print('Verbose mode active')
         VERBOSE = True
+    elif opt == '--noqueue':
+        print('Disabling Queue')
+        USE_QUEUE = False
     elif opt == '--upvotes':
         print(opt, arg)
         UPVOTES_NEEDED = int(arg)
@@ -82,18 +88,8 @@ async def on_message(message):
         verbose_log('No song link detected')
         return
 
-    track_in_playlist = check_track_in_playlist(track_id, SPOTIFY_PLAYLIST)
-    if not track_in_playlist:
-        verbose_log('Adding song to %s' % SPOTIFY_PLAYLIST)
-        uri = track_uri(track_id)
-        verbose_log(uri)
-        access_token = get_access_token()
-        tempcall = requests.post('https://api.spotify.com/v1/playlists/%s/tracks' % SPOTIFY_PLAYLIST,
-                                 headers={'Authorization': 'Bearer ' + access_token,
-                                          'Content-Type': 'application/json',
-                                          'Accept': 'application/json'},
-                                 params={'uris': track_uri(track_id)})
-        verbose_log(tempcall)
+    if not check_track_in_playlist(track_id, SPOTIFY_PLAYLIST):
+        await add_song_to_playlist(track_id, SPOTIFY_PLAYLIST)
         await message.channel.send('Added to %s!' % SPOTIFY_PLAYLIST_NAME)
 
     track_in_db = find_track_in_db(track_id)
@@ -106,7 +102,7 @@ async def on_message(message):
             return
 
     verbose_log('Song can be voted on')
-    reset_or_add_track(track_id, track_in_db)
+    await reset_or_add_track(track_id, track_in_db)
     await send_vote_message(track_id, message)
 
 
@@ -262,7 +258,7 @@ def find_track_in_db(track_id):
     return db[track_index_in_db]
 
 
-def reset_or_add_track(track_id, track):
+async def reset_or_add_track(track_id, track):
     verbose_log('Reset or Add Track', track)
     db = get_db()
     vote_again = datetime.datetime.now() + datetime.timedelta(days=calendar.monthrange(
@@ -287,6 +283,7 @@ def reset_or_add_track(track_id, track):
         track['hasUpvoted'] = []
         track['hasDownvoted'] = []
         update_track_in_db(track)
+    await add_song_to_playlist(track_id, SPOTIFY_QUEUE_PLAYLIST)
 
 
 async def send_vote_message(track_id, message):
@@ -345,12 +342,10 @@ async def handle_threshold_reached(track, channel, message):
     if len(track['hasUpvoted']) >= UPVOTES_NEEDED:
         verbose_log('Upvote threshold reached')
         track['inPlaylist'] = True
-        access_token = get_access_token()
-        tempCall = requests.post('https://api.spotify.com/v1/playlists/%s/tracks' % SPOTIFY_VOTE_PLAYLIST,
-                                 headers={'Authorization': 'Bearer ' + access_token,
-                                          'Content-Type': 'application/json'},
-                                 params={'uris': track_uri(track['id'])})
-        if tempCall.status_code == 201:
+        if USE_QUEUE:
+            await remove_song_from_playlist(track['id'], SPOTIFY_QUEUE_PLAYLIST)
+        add_song = await add_song_to_playlist(track['id'], SPOTIFY_VOTE_PLAYLIST)
+        if add_song.status_code == 201:
             await channel.send("{} is a certified banger!".format(track['name']))
         else:
             await channel.send("Couldn't add {} to playlist, sorry...".format(track['name']))
@@ -358,9 +353,35 @@ async def handle_threshold_reached(track, channel, message):
     elif len(track['hasDownvoted']) >= DOWNVOTES_NEEDED:
         verbose_log('Downvote threshold reached')
         track['voteFailed'] = True
+        if USE_QUEUE:
+            await remove_song_from_playlist(track['id'], SPOTIFY_QUEUE_PLAYLIST)
         await channel.send("{} didn't make the cut".format(track['name']))
         await message.delete()
     return track
+
+
+async def add_song_to_playlist(track_id, playlist):
+    verbose_log("Adding song %s to %s" % (track_id, playlist))
+    access_token = get_access_token()
+    tempcall = requests.post('https://api.spotify.com/v1/playlists/%s/tracks' % playlist,
+                                   headers={'Authorization': 'Bearer ' + access_token,
+                                            'Content-Type': 'application/json',
+                                            'Accept': 'application/json'},
+                                   params={'uris': track_uri(track_id)})
+    verbose_log(tempcall)
+    return tempcall
+
+
+async def remove_song_from_playlist(track_id, playlist):
+    verbose_log("Removing song %s to %s" % (track_id, playlist))
+    access_token = get_access_token()
+    tempcall = requests.delete('https://api.spotify.com/v1/playlists/%s/tracks' % playlist,
+                                     headers={'Authorization': 'Bearer ' + access_token,
+                                              'Content-Type': 'application/json',
+                                              'Accept': 'application/json'},
+                                     json={'tracks': [{'uri': track_uri(track_id)}]})
+    verbose_log(tempcall)
+    return tempcall
 
 
 def track_uri(track_id):
