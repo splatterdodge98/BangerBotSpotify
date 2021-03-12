@@ -216,21 +216,24 @@ def check_for_track(message):
         return None
 
 
-def check_track_in_playlist(track_id, playlist):
-    verbose_log('Checking for track in playlist')
+def check_track_in_playlist(track_id, playlist, offset = 0):
+    verbose_log('Checking for track in playlist', track_id, playlist)
     access_token = get_access_token()
     track_list_res = requests.get('https://api.spotify.com/v1/playlists/%s/tracks' % playlist,
                                   headers={
                                       'Authorization': 'Bearer ' + access_token},
-                                  params={'market': 'US', 'fields': 'items(track(id))'})
+                                  params={'market': 'US', 'fields': 'items(track(id))', 'offset': offset})
     try:
         track_list = track_list_res.json()['items']
         verbose_log('Song List', track_list)
+        if len(track_list) == 0:
+            verbose_log('Track list end reached')
+            return False
         if len([True for x in track_list if x['track']['id'] == track_id]) > 0:
             verbose_log('Track in playlist already')
             return True
-        verbose_log('Track not in playlist already')
-        return False
+        verbose_log('Track not in playlist, checking next 100')
+        return check_track_in_playlist(track_id, playlist, offset + 100)
     except:
         verbose_log('Error checking playlist for track')
         return True
